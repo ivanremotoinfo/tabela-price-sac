@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tabela Price e SAC | SuporteADV</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d0d0d; color: #e0e0e0; padding: 24px 16px; }
+  .container { max-width: 820px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #222; }
+  h1 { font-size: 1.5rem; color: #008080; margin-bottom: 6px; }
+  .subtitle { font-size: 0.88rem; color: #888; line-height: 1.5; }
+  .brand { font-size: 0.78rem; margin-top: 8px; color: #555; }
+  .brand span.s { color: #8B00FF; font-weight: 700; }
+  .brand span.a { color: #008080; font-weight: 700; }
+
+  .card { background: #111; border-radius: 10px; border: 1px solid #222; border-left: 3px solid #8B00FF; padding: 20px 22px; margin-bottom: 14px; transition: border-left-color 0.2s; }
+  .card:hover { border-left-color: #008080; }
+  .card-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #008080; font-weight: 700; margin-bottom: 16px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  @media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; } }
+
+  .field label { display: block; font-size: 0.78rem; color: #888; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .field input, .field select {
+    width: 100%; padding: 9px 11px; border: 1.5px solid #333; border-radius: 6px;
+    font-size: 0.95rem; color: #fff; background: #1a1a1a; transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: #008080; box-shadow: 0 0 0 2px rgba(0,128,128,0.2); }
+  .field select option { background: #1a1a1a; }
+
+  /* Tabs sistema */
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tab {
+    flex: 1; padding: 10px; border-radius: 8px; border: 1.5px solid #333;
+    font-size: 0.82rem; font-weight: 700; cursor: pointer; color: #888;
+    background: #1a1a1a; text-transform: uppercase; letter-spacing: 0.05em;
+    transition: all 0.18s; text-align: center;
+  }
+  .tab:hover { border-color: #008080; color: #008080; }
+  .tab.ativo { background: #008080; border-color: #008080; color: #fff; }
+  .tab.ativo-price { background: #8B00FF; border-color: #8B00FF; color: #fff; }
+  .tab.ativo-ambos { background: #1a1a1a; border-color: #008080; color: #008080; }
+
+  button.calcular {
+    background: #008080; color: #fff; border: none; padding: 10px 26px;
+    border-radius: 6px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.07em;
+    cursor: pointer; transition: background 0.18s, box-shadow 0.18s; text-transform: uppercase;
+  }
+  button.calcular:hover { background: #006666; box-shadow: 0 0 10px rgba(0,128,128,0.4); }
+
+  /* Resultado */
+  .resultado { margin-top: 14px; display: none; }
+  .resultado.visible { display: block; }
+  .resultado-titulo { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #008080; font-weight: 700; margin-bottom: 14px; }
+
+  /* Resumo cards */
+  .resumo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .resumo-card { background: #111; border-radius: 10px; border: 1px solid #222; padding: 16px; }
+  .resumo-card.price { border-top: 3px solid #8B00FF; }
+  .resumo-card.sac { border-top: 3px solid #008080; }
+  .resumo-card .titulo { font-size: 0.75rem; text-transform: uppercase; color: #555; letter-spacing: 0.08em; font-weight: 700; margin-bottom: 12px; }
+  .resumo-card .titulo.price { color: #8B00FF; }
+  .resumo-card .titulo.sac { color: #008080; }
+  .resumo-item { margin-bottom: 8px; }
+  .resumo-item label { display: block; font-size: 0.68rem; color: #444; text-transform: uppercase; margin-bottom: 2px; }
+  .resumo-item .v { font-size: 0.95rem; font-weight: 700; font-family: 'Courier New', monospace; color: #ccc; }
+  .resumo-item .v.grande { font-size: 1.2rem; color: #00ff00; }
+  .resumo-item .v.roxo { color: #8B00FF; }
+  .resumo-item .v.teal { color: #008080; }
+  .resumo-item .v.economy { color: #00ff00; }
+
+  .economia-box {
+    background: #0a1a0a; border: 1px solid #1a4a1a; border-radius: 8px;
+    padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+  .economia-box .label { font-size: 0.78rem; color: #555; }
+  .economia-box .valor { font-size: 1.1rem; font-weight: 700; color: #00ff00; font-family: 'Courier New', monospace; }
+
+  .divider { border: none; border-top: 1px solid #222; margin: 14px 0; }
+
+  /* Tabelas */
+  .tabelas-wrap { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .tabela-section { background: #111; border-radius: 10px; border: 1px solid #222; padding: 16px; }
+  .tabela-section .ts-titulo { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; margin-bottom: 12px; }
+  .tabela-section .ts-titulo.price { color: #8B00FF; }
+  .tabela-section .ts-titulo.sac { color: #008080; }
+  .tabela-section summary { cursor: pointer; font-size: 0.82rem; margin-bottom: 10px; }
+  .tabela-section summary.price { color: #8B00FF; }
+  .tabela-section summary.sac { color: #008080; }
+
+  .tabela-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.78rem; min-width: 500px; }
+  th { text-align: right; color: #555; padding: 6px 8px; border-bottom: 1px solid #222; font-size: 0.68rem; text-transform: uppercase; }
+  th:first-child { text-align: center; }
+  td { text-align: right; color: #999; padding: 5px 8px; border-bottom: 1px solid #1a1a1a; font-family: 'Courier New', monospace; font-size: 0.78rem; }
+  td:first-child { text-align: center; color: #555; font-family: inherit; }
+  tr:hover td { background: #151515; }
+  td.parc { color: #00ff00; font-weight: 700; }
+  td.parc-price { color: #8B00FF; font-weight: 700; }
+  tr.total-row td { color: #fff; font-weight: 700; background: #111; border-top: 1px solid #333; }
+
+  .erro { background: #1a0a0a; border: 1px solid #4a1a1a; border-radius: 8px; padding: 14px 16px; color: #ff6666; font-size: 0.88rem; margin-top: 14px; display: none; }
+  .erro.visible { display: block; }
+  .aviso { font-size: 0.72rem; color: #444; margin-top: 12px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Tabela Price e SAC</h1>
+    <p class="subtitle">Calcule financiamentos pelos sistemas Price (parcelas fixas) e SAC (amortização constante). Compare os dois lado a lado.</p>
+    <p class="brand"><span class="s">suporte</span><span class="a">ADV</span>.br — Ferramentas para Advogados</p>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Sistema de Amortização</div>
+    <div class="tabs">
+      <div class="tab ativo-price" id="tab-price" onclick="setTab('price')">Price</div>
+      <div class="tab ativo" id="tab-sac" onclick="setTab('sac')">SAC</div>
+      <div class="tab" id="tab-ambos" onclick="setTab('ambos')">Comparar os dois</div>
+    </div>
+
+    <div class="card-label">Dados do Financiamento</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Valor financiado (R$)</label>
+        <input type="number" id="principal" placeholder="Ex: 100000,00" step="0.01" min="0">
+      </div>
+      <div class="field">
+        <label>Taxa de juros (% ao mês)</label>
+        <input type="number" id="taxa" placeholder="Ex: 1" step="0.0001" min="0" value="1">
+      </div>
+      <div class="field">
+        <label>Número de parcelas</label>
+        <input type="number" id="parcelas" placeholder="Ex: 36" min="1" max="600" value="36">
+      </div>
+      <div class="field">
+        <label>Data da 1ª parcela</label>
+        <input type="month" id="dataPrimeira">
+      </div>
+    </div>
+    <button class="calcular" onclick="calcular()">CALCULAR</button>
+  </div>
+
+  <div class="erro" id="erro"></div>
+
+  <div class="resultado" id="resultado">
+    <div class="resultado-titulo" id="res-titulo">Resultado</div>
+
+    <div class="resumo-grid" id="resumo-grid"></div>
+
+    <div class="economia-box" id="economia-box" style="display:none">
+      <div>
+        <div class="label">💰 Economia total com o SAC em relação ao Price</div>
+        <div style="font-size:0.72rem;color:#444">Diferença no total de juros pagos</div>
+      </div>
+      <div class="valor" id="economia-valor">—</div>
+    </div>
+
+    <div class="tabelas-wrap" id="tabelas-wrap"></div>
+
+    <p class="aviso">⚠️ Cálculo meramente ilustrativo. O Price usa parcelas fixas com juros decrescentes e amortização crescente. O SAC usa amortização fixa com juros e parcelas decrescentes. No SAC as primeiras parcelas são maiores, mas o total de juros é menor.</p>
+  </div>
+
+</div>
+
+<script>
+let modoAtual = 'price';
+
+function setTab(modo) {
+  modoAtual = modo;
+  document.getElementById('tab-price').className = 'tab' + (modo === 'price' ? ' ativo-price' : '');
+  document.getElementById('tab-sac').className = 'tab' + (modo === 'sac' ? ' ativo' : '');
+  document.getElementById('tab-ambos').className = 'tab' + (modo === 'ambos' ? ' ativo-ambos' : '');
+}
+
+function fmtMoeda(v) {
+  return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtMes(str) {
+  const [ano, mes] = str.split('-');
+  const n = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return `${n[parseInt(mes)-1]}/${ano}`;
+}
+function addMes(str, n) {
+  const [ano, mes] = str.split('-').map(Number);
+  const d = new Date(ano, mes - 1 + n, 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+function showErro(msg) {
+  document.getElementById('erro').textContent = msg;
+  document.getElementById('erro').classList.add('visible');
+  document.getElementById('resultado').classList.remove('visible');
+}
+function hideErro() { document.getElementById('erro').classList.remove('visible'); }
+
+function calcPrice(pv, i, n) {
+  const pmt = pv * (i * Math.pow(1+i, n)) / (Math.pow(1+i, n) - 1);
+  const linhas = [];
+  let saldo = pv;
+  for (let k = 1; k <= n; k++) {
+    const juros = saldo * i;
+    const amort = pmt - juros;
+    saldo -= amort;
+    linhas.push({ parc: k, pmt, juros, amort, saldo: Math.max(0, saldo) });
+  }
+  return { pmt, linhas, totalPago: pmt * n, totalJuros: pmt * n - pv };
+}
+
+function calcSAC(pv, i, n) {
+  const amort = pv / n;
+  const linhas = [];
+  let saldo = pv;
+  let totalPago = 0;
+  for (let k = 1; k <= n; k++) {
+    const juros = saldo * i;
+    const pmt = amort + juros;
+    saldo -= amort;
+    totalPago += pmt;
+    linhas.push({ parc: k, pmt, juros, amort, saldo: Math.max(0, saldo) });
+  }
+  return { pmtPrimeira: linhas[0].pmt, pmtUltima: linhas[n-1].pmt, linhas, totalPago, totalJuros: totalPago - pv };
+}
+
+function gerarTabela(linhas, tipo, dataPrimeira) {
+  const div = document.createElement('div');
+  div.className = 'tabela-section';
+  const label = tipo === 'price' ? 'Price' : 'SAC';
+  const cls = tipo;
+  div.innerHTML = `
+    <details>
+      <summary class="${cls}">Ver tabela completa ${label} (${linhas.length} parcelas)</summary>
+      <div class="tabela-scroll">
+        <table>
+          <thead><tr>
+            <th>#</th><th>Competência</th>
+            <th>Parcela</th><th>Juros</th>
+            <th>Amortização</th><th>Saldo devedor</th>
+          </tr></thead>
+          <tbody id="tbody-${tipo}"></tbody>
+        </table>
+      </div>
+    </details>`;
+  document.getElementById('tabelas-wrap').appendChild(div);
+
+  const tbody = div.querySelector(`#tbody-${tipo}`);
+  linhas.forEach(l => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${l.parc}</td>
+      <td style="text-align:left;font-family:inherit;color:#666">${fmtMes(addMes(dataPrimeira, l.parc - 1))}</td>
+      <td class="parc${tipo === 'price' ? '-price' : ''}">${fmtMoeda(l.pmt)}</td>
+      <td style="color:#ffaa00">${fmtMoeda(l.juros)}</td>
+      <td style="color:#888">${fmtMoeda(l.amort)}</td>
+      <td>${fmtMoeda(l.saldo)}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // Linha total
+  const totalPmt = linhas.reduce((s,l)=>s+l.pmt, 0);
+  const totalJuros = linhas.reduce((s,l)=>s+l.juros, 0);
+  const totalAmort = linhas.reduce((s,l)=>s+l.amort, 0);
+  const trT = document.createElement('tr');
+  trT.className = 'total-row';
+  trT.innerHTML = `
+    <td colspan="2">TOTAL</td>
+    <td>${fmtMoeda(totalPmt)}</td>
+    <td style="color:#ffaa00">${fmtMoeda(totalJuros)}</td>
+    <td>${fmtMoeda(totalAmort)}</td>
+    <td>—</td>`;
+  tbody.appendChild(trT);
+}
+
+function calcular() {
+  hideErro();
+  const pv = parseFloat(document.getElementById('principal').value);
+  const taxaMes = parseFloat(document.getElementById('taxa').value) / 100;
+  const n = parseInt(document.getElementById('parcelas').value);
+  const dataPrimeira = document.getElementById('dataPrimeira').value;
+
+  if (!pv || pv <= 0) return showErro('Informe o valor financiado.');
+  if (!taxaMes || taxaMes <= 0) return showErro('Informe a taxa de juros.');
+  if (!n || n < 1) return showErro('Informe o número de parcelas.');
+  if (!dataPrimeira) return showErro('Informe a data da 1ª parcela.');
+  if (n > 600) return showErro('Máximo de 600 parcelas.');
+
+  const price = calcPrice(pv, taxaMes, n);
+  const sac = calcSAC(pv, taxaMes, n);
+
+  // Limpa
+  document.getElementById('resumo-grid').innerHTML = '';
+  document.getElementById('tabelas-wrap').innerHTML = '';
+  document.getElementById('economia-box').style.display = 'none';
+
+  // Título
+  const titulos = { price: 'Sistema Price', sac: 'Sistema SAC', ambos: 'Price vs SAC — Comparativo' };
+  document.getElementById('res-titulo').textContent = titulos[modoAtual];
+
+  // Resumo cards
+  const grid = document.getElementById('resumo-grid');
+
+  if (modoAtual === 'price' || modoAtual === 'ambos') {
+    const card = document.createElement('div');
+    card.className = 'resumo-card price';
+    card.innerHTML = `
+      <div class="titulo price">Sistema Price</div>
+      <div class="resumo-item"><label>Parcela fixa</label><div class="v roxo">${fmtMoeda(price.pmt)}</div></div>
+      <div class="resumo-item"><label>Total pago</label><div class="v">${fmtMoeda(price.totalPago)}</div></div>
+      <div class="resumo-item"><label>Total de juros</label><div class="v" style="color:#ffaa00">${fmtMoeda(price.totalJuros)}</div></div>
+      <div class="resumo-item"><label>Juros / Principal</label><div class="v" style="color:#555">${((price.totalJuros/pv)*100).toFixed(1).replace('.',',')}%</div></div>`;
+    grid.appendChild(card);
+  }
+
+  if (modoAtual === 'sac' || modoAtual === 'ambos') {
+    const card = document.createElement('div');
+    card.className = 'resumo-card sac';
+    card.innerHTML = `
+      <div class="titulo sac">Sistema SAC</div>
+      <div class="resumo-item"><label>1ª parcela</label><div class="v teal">${fmtMoeda(sac.pmtPrimeira)}</div></div>
+      <div class="resumo-item"><label>Última parcela</label><div class="v teal">${fmtMoeda(sac.pmtUltima)}</div></div>
+      <div class="resumo-item"><label>Total pago</label><div class="v">${fmtMoeda(sac.totalPago)}</div></div>
+      <div class="resumo-item"><label>Total de juros</label><div class="v" style="color:#ffaa00">${fmtMoeda(sac.totalJuros)}</div></div>`;
+    grid.appendChild(card);
+  }
+
+  // Economia
+  if (modoAtual === 'ambos') {
+    const economia = price.totalJuros - sac.totalJuros;
+    document.getElementById('economia-valor').textContent = fmtMoeda(economia);
+    document.getElementById('economia-box').style.display = '';
+  }
+
+  // Tabelas
+  if (modoAtual === 'price' || modoAtual === 'ambos') gerarTabela(price.linhas, 'price', dataPrimeira);
+  if (modoAtual === 'sac' || modoAtual === 'ambos') gerarTabela(sac.linhas, 'sac', dataPrimeira);
+
+  document.getElementById('resultado').classList.add('visible');
+}
+
+// Data padrão: próximo mês
+const hoje = new Date();
+const prox = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1);
+document.getElementById('dataPrimeira').value = `${prox.getFullYear()}-${String(prox.getMonth()+1).padStart(2,'0')}`;
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const f = document.activeElement;
+    if (f && (f.tagName === 'INPUT' || f.tagName === 'SELECT')) calcular();
+  }
+});
+</script>
+</body>
+</html>
